@@ -2,6 +2,7 @@ import SortView from '../view/sort-view.js';
 import EventListView from '../view/event-list-view.js';
 import EditPointView from '../view/edit-point-view.js';
 import PointView from '../view/point-view.js';
+import NoPointView from '../view/no-point-view.js';
 import { render, replace } from '../framework/render.js';
 import { destinations } from '../mock/point.js';
 
@@ -16,11 +17,15 @@ export default class BoardPresenter {
     this.#pointsModel = pointsModel;
     this.#boardPoints = [...this.#pointsModel.getPoints()];
 
-    render(new SortView(), this.#boardContainer);
-    render(this.#boardComponent, this.#boardContainer);
+    if (this.#boardPoints.length === 0) {
+      render(new NoPointView(), this.#boardContainer);
+    } else {
+      render(new SortView(), this.#boardContainer);
+      render(this.#boardComponent, this.#boardContainer);
 
-    for (let i = 0; i < this.#boardPoints.length; i++) {
-      this.#renderPoint(this.#boardPoints[i]);
+      for (let i = 0; i < this.#boardPoints.length; i++) {
+        this.#renderPoint(this.#boardPoints[i]);
+      }
     }
   }
 
