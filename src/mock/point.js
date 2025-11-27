@@ -37,19 +37,19 @@ const generateOffer = (id) => ({
 });
 
 const generateOffersByType = () => {
-  const offersByType = [];
+  const allOffersByType = [];
   for (const type of POINT_TYPES) {
     const offers = [];
     const offersCount = getRandomInteger(0, 5);
     for (let i = 0; i < offersCount; i++) {
       offers.push(generateOffer(i + 1)); // Simple ID for now
     }
-    offersByType.push({
+    allOffersByType.push({
       type: type,
       offers: offers
     });
   }
-  return offersByType;
+  return allOffersByType;
 };
 
 const offersByType = generateOffersByType();
