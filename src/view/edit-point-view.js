@@ -1,5 +1,5 @@
-import { createElement } from '../render.js';
-import { offersByType, destinations } from '../mock/point.js'; // Import mock data directly for now or pass via constructor
+import AbstractView from '../framework/view/abstract-view.js';
+import { offersByType, destinations } from '../mock/point.js';
 import dayjs from 'dayjs';
 
 function createEditPointTemplate(point) {
@@ -45,15 +45,41 @@ function createEditPointTemplate(point) {
             <div class="event__type-list">
               <fieldset class="event__type-group">
                 <legend class="visually-hidden">Event type</legend>
-                <!-- Generate type list dynamically if needed, for now hardcoded or simplified -->
                 <div class="event__type-item">
                   <input id="event-type-taxi-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="taxi" ${type === 'taxi' ? 'checked' : ''}>
                   <label class="event__type-label  event__type-label--taxi" for="event-type-taxi-1">Taxi</label>
                 </div>
-                <!-- ... other types ... -->
+                <div class="event__type-item">
+                  <input id="event-type-bus-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="bus" ${type === 'bus' ? 'checked' : ''}>
+                  <label class="event__type-label  event__type-label--bus" for="event-type-bus-1">Bus</label>
+                </div>
+                <div class="event__type-item">
+                  <input id="event-type-train-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="train" ${type === 'train' ? 'checked' : ''}>
+                  <label class="event__type-label  event__type-label--train" for="event-type-train-1">Train</label>
+                </div>
+                <div class="event__type-item">
+                  <input id="event-type-ship-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="ship" ${type === 'ship' ? 'checked' : ''}>
+                  <label class="event__type-label  event__type-label--ship" for="event-type-ship-1">Ship</label>
+                </div>
+                <div class="event__type-item">
+                  <input id="event-type-drive-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="drive" ${type === 'drive' ? 'checked' : ''}>
+                  <label class="event__type-label  event__type-label--drive" for="event-type-drive-1">Drive</label>
+                </div>
                 <div class="event__type-item">
                   <input id="event-type-flight-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="flight" ${type === 'flight' ? 'checked' : ''}>
                   <label class="event__type-label  event__type-label--flight" for="event-type-flight-1">Flight</label>
+                </div>
+                <div class="event__type-item">
+                  <input id="event-type-check-in-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="check-in" ${type === 'check-in' ? 'checked' : ''}>
+                  <label class="event__type-label  event__type-label--check-in" for="event-type-check-in-1">Check-in</label>
+                </div>
+                <div class="event__type-item">
+                  <input id="event-type-sightseeing-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="sightseeing" ${type === 'sightseeing' ? 'checked' : ''}>
+                  <label class="event__type-label  event__type-label--sightseeing" for="event-type-sightseeing-1">Sightseeing</label>
+                </div>
+                <div class="event__type-item">
+                  <input id="event-type-restaurant-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="restaurant" ${type === 'restaurant' ? 'checked' : ''}>
+                  <label class="event__type-label  event__type-label--restaurant" for="event-type-restaurant-1">Restaurant</label>
                 </div>
               </fieldset>
             </div>
@@ -116,24 +142,36 @@ function createEditPointTemplate(point) {
   );
 }
 
-export default class EditPointView {
+export default class EditPointView extends AbstractView {
+  #point = null;
+  _callback = {};
+
   constructor({ point }) {
-    this.point = point;
+    super();
+    this.#point = point;
   }
 
-  getTemplate() {
-    return createEditPointTemplate(this.point);
+  get template() {
+    return createEditPointTemplate(this.#point);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
+  setFormSubmitHandler = (callback) => {
+    this._callback.formSubmit = callback;
+    this.element.querySelector('form').addEventListener('submit', this.#formSubmitHandler);
+  };
 
-    return this.element;
-  }
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.formSubmit(this.#point);
+  };
 
-  removeElement() {
-    this.element = null;
-  }
+  setRollupClickHandler = (callback) => {
+    this._callback.rollupClick = callback;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#rollupClickHandler);
+  };
+
+  #rollupClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.rollupClick();
+  };
 }

@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
 import { offersByType } from '../mock/point.js';
 
@@ -49,7 +49,7 @@ function createPointTemplate(point) {
         <div class="event__type">
           <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
         </div>
-        <h3 class="event__title">${type} ${destination}</h3> <!-- Destination is ID for now, need to lookup name if we had full model access here, but for now assuming we pass name or handle it -->
+        <h3 class="event__title">${type} ${destination}</h3>
         <div class="event__schedule">
           <p class="event__time">
             <time class="event__start-time" datetime="${dateFrom}">${timeFrom}</time>
@@ -79,29 +79,31 @@ function createPointTemplate(point) {
   );
 }
 
-export default class PointView {
+export default class PointView extends AbstractView {
+  #point = null;
+  #destinations = null;
+  _callback = {};
+
   constructor({ point, destinations }) {
-    this.point = point;
+    super();
+    this.#point = point;
+    this.#destinations = destinations;
     // We need to resolve destination ID to name for display
-    const destinationObj = destinations.find((d) => d.id === point.destination);
-    this.point.destinationName = destinationObj ? destinationObj.name : point.destination;
-    this.destinations = destinations;
+    const destinationObj = this.#destinations.find((d) => d.id === this.#point.destination);
+    this.#point.destinationName = destinationObj ? destinationObj.name : this.#point.destination;
   }
 
-  getTemplate() {
-    // Pass modified point with destination name
-    return createPointTemplate({ ...this.point, destination: this.point.destinationName });
+  get template() {
+    return createPointTemplate({ ...this.#point, destination: this.#point.destinationName });
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
+  setEditClickHandler = (callback) => {
+    this._callback.editClick = callback;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#editClickHandler);
+  };
 
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
-  }
+  #editClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.editClick();
+  };
 }
