@@ -2,26 +2,61 @@ import SortView from '../view/sort-view.js';
 import EventListView from '../view/event-list-view.js';
 import EditPointView from '../view/edit-point-view.js';
 import PointView from '../view/point-view.js';
-import { render } from '../render.js';
-import { destinations } from '../mock/point.js'; // Import destinations for now
+import { render, replace } from '../framework/render.js';
+import { destinations } from '../mock/point.js';
 
 export default class BoardPresenter {
-  boardComponent = new EventListView();
+  #boardContainer = null;
+  #pointsModel = null;
+  #boardComponent = new EventListView();
+  #boardPoints = [];
 
   init(boardContainer, pointsModel) {
-    this.boardContainer = boardContainer;
-    this.pointsModel = pointsModel;
-    this.boardPoints = [...this.pointsModel.getPoints()];
+    this.#boardContainer = boardContainer;
+    this.#pointsModel = pointsModel;
+    this.#boardPoints = [...this.#pointsModel.getPoints()];
 
-    render(new SortView(), this.boardContainer);
-    render(this.boardComponent, this.boardContainer);
+    render(new SortView(), this.#boardContainer);
+    render(this.#boardComponent, this.#boardContainer);
 
-    // Render first point as edit form
-    render(new EditPointView({ point: this.boardPoints[0] }), this.boardComponent.getElement());
-
-    // Render rest of the points
-    for (let i = 1; i < this.boardPoints.length; i++) {
-      render(new PointView({ point: this.boardPoints[i], destinations: destinations }), this.boardComponent.getElement());
+    for (let i = 0; i < this.#boardPoints.length; i++) {
+      this.#renderPoint(this.#boardPoints[i]);
     }
+  }
+
+  #renderPoint(point) {
+    const pointComponent = new PointView({ point, destinations });
+    const pointEditComponent = new EditPointView({ point });
+
+    const replacePointToForm = () => {
+      replace(pointEditComponent, pointComponent);
+      document.addEventListener('keydown', onEscKeyDown);
+    };
+
+    const replaceFormToPoint = () => {
+      replace(pointComponent, pointEditComponent);
+      document.removeEventListener('keydown', onEscKeyDown);
+    };
+
+    function onEscKeyDown(evt) {
+      if (evt.key === 'Escape' || evt.key === 'Esc') {
+        evt.preventDefault();
+        replaceFormToPoint();
+      }
+    }
+
+    pointComponent.setEditClickHandler(() => {
+      replacePointToForm();
+    });
+
+    pointEditComponent.setFormSubmitHandler(() => {
+      replaceFormToPoint();
+    });
+
+    pointEditComponent.setRollupClickHandler(() => {
+      replaceFormToPoint();
+    });
+
+    render(pointComponent, this.#boardComponent.element);
   }
 }
