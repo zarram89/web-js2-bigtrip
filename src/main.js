@@ -10,10 +10,10 @@ const siteFilterElement = siteHeaderElement.querySelector('.trip-controls__filte
 const siteBoardElement = siteMainElement.querySelector('.trip-events');
 
 const pointsModel = new PointsModel();
-const boardPresenter = new BoardPresenter();
+const boardPresenter = new BoardPresenter(siteBoardElement, pointsModel);
 
 const filters = generateFilter(pointsModel.getPoints());
 
 render(new FilterView({ filters }), siteFilterElement);
 
-boardPresenter.init(siteBoardElement, pointsModel);
+boardPresenter.init();
