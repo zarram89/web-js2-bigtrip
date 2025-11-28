@@ -14,7 +14,7 @@ export default class NewPointPresenter {
     this.#changeData = changeData;
   }
 
-  init(callback) {
+  init(callback, allOffers, allDestinations) {
     this.#destroyCallback = callback;
 
     if (this.#pointEditComponent !== null) {
@@ -23,6 +23,8 @@ export default class NewPointPresenter {
 
     this.#pointEditComponent = new EditPointView({
       point: this.#generateDefaultPoint(),
+      allOffers: allOffers,
+      allDestinations: allDestinations,
     });
 
     this.#pointEditComponent.setFormSubmitHandler(this.#handleFormSubmit);
