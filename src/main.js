@@ -1,19 +1,37 @@
 import BoardPresenter from './presenter/board-presenter.js';
-import FilterView from './view/filter-view.js';
+import FilterPresenter from './presenter/filter-presenter.js';
 import PointsModel from './model/points-model.js';
-import { render } from './framework/render.js';
-import { generateFilter } from './mock/filter.js';
+import FilterModel from './model/filter-model.js';
 
-const siteMainElement = document.querySelector('.page-main');
-const siteHeaderElement = document.querySelector('.page-header');
-const siteFilterElement = siteHeaderElement.querySelector('.trip-controls__filters');
-const siteBoardElement = siteMainElement.querySelector('.trip-events');
+const tripFiltersElement = document.querySelector('.trip-controls__filters');
+const tripEventsElement = document.querySelector('.trip-events');
+const newEventButtonComponent = document.querySelector('.trip-main__event-add-btn');
 
 const pointsModel = new PointsModel();
-const boardPresenter = new BoardPresenter(siteBoardElement, pointsModel);
+const filterModel = new FilterModel();
 
-const filters = generateFilter(pointsModel.getPoints());
+const boardPresenter = new BoardPresenter({
+  boardContainer: tripEventsElement,
+  pointsModel,
+  filterModel,
+});
 
-render(new FilterView({ filters }), siteFilterElement);
+const filterPresenter = new FilterPresenter({
+  filterContainer: tripFiltersElement,
+  filterModel,
+  pointsModel,
+});
 
+const handleNewEventFormClose = () => {
+  newEventButtonComponent.disabled = false;
+};
+
+const handleNewEventButtonClick = () => {
+  boardPresenter.createPoint(handleNewEventFormClose);
+  newEventButtonComponent.disabled = true;
+};
+
+newEventButtonComponent.addEventListener('click', handleNewEventButtonClick);
+
+filterPresenter.init();
 boardPresenter.init();
