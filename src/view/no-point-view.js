@@ -8,8 +8,10 @@ const NoPointsTextType = {
   [FilterType.PAST]: 'There are no past events now',
 };
 
-function createNoPointTemplate(filterType) {
-  const noPointTextValue = NoPointsTextType[filterType];
+function createNoPointTemplate(filterType, isServerUnavailable) {
+  const noPointTextValue = isServerUnavailable
+    ? 'Failed to load latest route information'
+    : NoPointsTextType[filterType];
 
   return (
     `<p class="trip-events__msg">${noPointTextValue}</p>`
@@ -18,13 +20,15 @@ function createNoPointTemplate(filterType) {
 
 export default class NoPointView extends AbstractView {
   #filterType = null;
+  #isServerUnavailable = false;
 
-  constructor({ filterType }) {
+  constructor({ filterType, isServerUnavailable = false }) {
     super();
     this.#filterType = filterType;
+    this.#isServerUnavailable = isServerUnavailable;
   }
 
   get template() {
-    return createNoPointTemplate(this.#filterType);
+    return createNoPointTemplate(this.#filterType, this.#isServerUnavailable);
   }
 }

@@ -72,6 +72,11 @@ export default class BoardPresenter {
         this.#pointPresenter.get(update.id).setSaving();
         try {
           await this.#pointsModel.updatePoint(updateType, update);
+          // If update was successful and the presenter still exists (PATCH update), close the form
+          const presenter = this.#pointPresenter.get(update.id);
+          if (presenter) {
+            presenter.resetView();
+          }
         } catch (err) {
           this.#pointPresenter.get(update.id).setAborting();
         }
@@ -155,7 +160,8 @@ export default class BoardPresenter {
 
   #renderNoPoints = () => {
     this.#noPointComponent = new NoPointView({
-      filterType: this.#filterType
+      filterType: this.#filterType,
+      isServerUnavailable: this.#pointsModel.isError,
     });
     render(this.#noPointComponent, this.#boardContainer, RenderPosition.AFTERBEGIN);
   };
@@ -182,6 +188,11 @@ export default class BoardPresenter {
 
     const points = this.points;
     const pointCount = points.length;
+
+    if (this.#pointsModel.isError) {
+      this.#renderNoPoints();
+      return;
+    }
 
     if (pointCount === 0) {
       this.#renderNoPoints();

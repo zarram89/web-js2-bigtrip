@@ -216,6 +216,11 @@ export default class EditPointView extends AbstractStatefulView {
       .addEventListener('change', this.#destinationChangeHandler);
     this.element.querySelector('.event__input--price')
       .addEventListener('change', this.#priceChangeHandler);
+
+    const offerCheckboxes = this.element.querySelectorAll('.event__offer-checkbox');
+    offerCheckboxes.forEach((checkbox) => {
+      checkbox.addEventListener('change', this.#offerChangeHandler);
+    });
   };
 
   #setDatepicker = () => {
@@ -282,6 +287,26 @@ export default class EditPointView extends AbstractStatefulView {
     evt.preventDefault();
     this._setState({
       basePrice: Number(evt.target.value),
+    });
+  };
+
+  #offerChangeHandler = (evt) => {
+    evt.preventDefault();
+    const { value, checked } = evt.target;
+
+    // Find the offer in available offers to get the correct ID type (number or string)
+    const typeOffers = this.#allOffers.find((o) => o.type === this._state.type);
+    const availableOffers = typeOffers ? typeOffers.offers : [];
+    const foundOffer = availableOffers.find((o) => String(o.id) === value);
+    const offerId = foundOffer ? foundOffer.id : value;
+
+    const currentOffers = this._state.offers;
+    const updatedOffers = checked
+      ? [...currentOffers, offerId]
+      : currentOffers.filter((id) => id !== offerId);
+
+    this._setState({
+      offers: updatedOffers,
     });
   };
 
