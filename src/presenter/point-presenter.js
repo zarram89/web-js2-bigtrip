@@ -1,6 +1,7 @@
 import { render, replace, remove } from '../framework/render.js';
 import PointView from '../view/point-view.js';
 import EditPointView from '../view/edit-point-view.js';
+import { isDatesEqual } from '../utils/point.js';
 import { UserAction, UpdateType } from '../const.js';
 
 const Mode = {
@@ -103,6 +104,41 @@ export default class PointPresenter {
     this.#replacePointToForm();
   };
 
+  setSaving = () => {
+    if (this.#mode === Mode.EDITING) {
+      this.#pointEditComponent.updateElement({
+        isDisabled: true,
+        isSaving: true,
+      });
+    }
+  };
+
+  setDeleting = () => {
+    if (this.#mode === Mode.EDITING) {
+      this.#pointEditComponent.updateElement({
+        isDisabled: true,
+        isDeleting: true,
+      });
+    }
+  };
+
+  setAborting = () => {
+    if (this.#mode === Mode.DEFAULT) {
+      this.#pointComponent.shake();
+      return;
+    }
+
+    const resetFormState = () => {
+      this.#pointEditComponent.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this.#pointEditComponent.shake(resetFormState);
+  };
+
   #handleFavoriteClick = () => {
     this.#changeData(
       UserAction.UPDATE_POINT,
@@ -112,14 +148,19 @@ export default class PointPresenter {
   };
 
   #handleFormSubmit = (update) => {
-    // Check if price changed or dates changed to determine UpdateType?
-    // For now, use MINOR.
+    // Check if the current point is exactly the same as the update
+    // If so, just close the form without sending a request
+    // This saves a server call and prevents "Saving..." state for no change
+    const isMinorUpdate =
+      !isDatesEqual(this.#point.dateFrom, update.dateFrom) ||
+      !isDatesEqual(this.#point.dateTo, update.dateTo) ||
+      this.#point.basePrice !== update.basePrice;
+
     this.#changeData(
       UserAction.UPDATE_POINT,
-      UpdateType.MINOR,
+      isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH,
       update,
     );
-    this.#replaceFormToPoint();
   };
 
   #handleDeleteClick = (point) => {
