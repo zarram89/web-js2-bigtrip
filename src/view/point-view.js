@@ -10,21 +10,19 @@ function createPointTemplate(point) {
   const timeTo = dayjs(dateTo).format('HH:mm');
   const duration = dayjs(dateTo).diff(dayjs(dateFrom), 'minute'); // Simple duration for now
 
-  // Format duration helper (simplified)
+  // Format duration helper
   const formatDuration = (minutes) => {
     const days = Math.floor(minutes / 1440);
     const hours = Math.floor((minutes % 1440) / 60);
     const mins = minutes % 60;
 
-    let result = '';
     if (days > 0) {
-      result += `${days}D `;
+      return `${days}D ${hours.toString().padStart(2, '0')}H ${mins.toString().padStart(2, '0')}M`;
     }
     if (hours > 0) {
-      result += `${hours}H `;
+      return `${hours}H ${mins.toString().padStart(2, '0')}M`;
     }
-    result += `${mins}M`;
-    return result;
+    return `${mins}M`;
   };
 
   const favoriteClassName = isFavorite
