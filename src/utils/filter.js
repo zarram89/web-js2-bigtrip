@@ -7,8 +7,8 @@ const FilterType = {
   PAST: 'past',
 };
 
-const isFuture = (dateFrom) => dateFrom && dayjs().isBefore(dateFrom, 'D');
-const isPresent = (dateFrom, dateTo) => dateFrom && dateTo && dayjs().isAfter(dateFrom, 'D') && dayjs().isBefore(dateTo, 'D');
+const isFuture = (dateFrom) => dateFrom && (dayjs().isBefore(dateFrom, 'D') || dayjs().isSame(dateFrom, 'D'));
+const isPresent = (dateFrom, dateTo) => dateFrom && dateTo && (dayjs().isAfter(dateFrom, 'D') || dayjs().isSame(dateFrom, 'D')) && (dayjs().isBefore(dateTo, 'D') || dayjs().isSame(dateTo, 'D'));
 const isPast = (dateTo) => dateTo && dayjs().isAfter(dateTo, 'D');
 
 const filter = {
