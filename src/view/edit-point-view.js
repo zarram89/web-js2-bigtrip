@@ -1,6 +1,8 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { offersByType, destinations } from '../mock/point.js';
 import dayjs from 'dayjs';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 function createEditPointTemplate(data) {
   const { basePrice, dateFrom, dateTo, destination, offers, type } = data;
@@ -144,19 +146,37 @@ function createEditPointTemplate(data) {
 
 export default class EditPointView extends AbstractStatefulView {
   _callback = {};
+  #datepickerFrom = null;
+  #datepickerTo = null;
 
   constructor({ point }) {
     super();
     this._state = EditPointView.parsePointToState(point);
     this.#setInnerHandlers();
+    this.#setDatepicker();
   }
 
   get template() {
     return createEditPointTemplate(this._state);
   }
 
+  removeElement = () => {
+    super.removeElement();
+
+    if (this.#datepickerFrom) {
+      this.#datepickerFrom.destroy();
+      this.#datepickerFrom = null;
+    }
+
+    if (this.#datepickerTo) {
+      this.#datepickerTo.destroy();
+      this.#datepickerTo = null;
+    }
+  };
+
   _restoreHandlers = () => {
     this.#setInnerHandlers();
+    this.#setDatepicker();
     this.setFormSubmitHandler(this._callback.formSubmit);
     this.setRollupClickHandler(this._callback.rollupClick);
   };
@@ -166,6 +186,41 @@ export default class EditPointView extends AbstractStatefulView {
       .addEventListener('change', this.#typeChangeHandler);
     this.element.querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
+  };
+
+  #setDatepicker = () => {
+    this.#datepickerFrom = flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        dateFormat: 'd/m/y H:i',
+        enableTime: true,
+        defaultDate: this._state.dateFrom,
+        onChange: this.#dateFromChangeHandler,
+      },
+    );
+
+    this.#datepickerTo = flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        dateFormat: 'd/m/y H:i',
+        enableTime: true,
+        defaultDate: this._state.dateTo,
+        minDate: this._state.dateFrom,
+        onChange: this.#dateToChangeHandler,
+      },
+    );
+  };
+
+  #dateFromChangeHandler = ([userDate]) => {
+    this.updateElement({
+      dateFrom: userDate,
+    });
+  };
+
+  #dateToChangeHandler = ([userDate]) => {
+    this.updateElement({
+      dateTo: userDate,
+    });
   };
 
   #typeChangeHandler = (evt) => {
