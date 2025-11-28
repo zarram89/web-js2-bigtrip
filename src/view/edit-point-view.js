@@ -1,9 +1,9 @@
-import AbstractView from '../framework/view/abstract-view.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { offersByType, destinations } from '../mock/point.js';
 import dayjs from 'dayjs';
 
-function createEditPointTemplate(point) {
-  const { basePrice, dateFrom, dateTo, destination, offers, type } = point;
+function createEditPointTemplate(data) {
+  const { basePrice, dateFrom, dateTo, destination, offers, type } = data;
 
   const destinationObj = destinations.find((d) => d.id === destination);
   const destinationName = destinationObj ? destinationObj.name : '';
@@ -142,18 +142,53 @@ function createEditPointTemplate(point) {
   );
 }
 
-export default class EditPointView extends AbstractView {
-  #point = null;
+export default class EditPointView extends AbstractStatefulView {
   _callback = {};
 
   constructor({ point }) {
     super();
-    this.#point = point;
+    this._state = EditPointView.parsePointToState(point);
+    this.#setInnerHandlers();
   }
 
   get template() {
-    return createEditPointTemplate(this.#point);
+    return createEditPointTemplate(this._state);
   }
+
+  _restoreHandlers = () => {
+    this.#setInnerHandlers();
+    this.setFormSubmitHandler(this._callback.formSubmit);
+    this.setRollupClickHandler(this._callback.rollupClick);
+  };
+
+  #setInnerHandlers = () => {
+    this.element.querySelector('.event__type-group')
+      .addEventListener('change', this.#typeChangeHandler);
+    this.element.querySelector('.event__input--destination')
+      .addEventListener('change', this.#destinationChangeHandler);
+  };
+
+  #typeChangeHandler = (evt) => {
+    evt.preventDefault();
+    this.updateElement({
+      type: evt.target.value,
+      offers: [],
+    });
+  };
+
+  #destinationChangeHandler = (evt) => {
+    evt.preventDefault();
+    const destinationName = evt.target.value;
+    const destination = destinations.find((d) => d.name === destinationName);
+
+    if (!destination) {
+      return;
+    }
+
+    this.updateElement({
+      destination: destination.id,
+    });
+  };
 
   setFormSubmitHandler = (callback) => {
     this._callback.formSubmit = callback;
@@ -162,7 +197,7 @@ export default class EditPointView extends AbstractView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this._callback.formSubmit(this.#point);
+    this._callback.formSubmit(EditPointView.parseStateToPoint(this._state));
   };
 
   setRollupClickHandler = (callback) => {
@@ -174,4 +209,8 @@ export default class EditPointView extends AbstractView {
     evt.preventDefault();
     this._callback.rollupClick();
   };
+
+  static parsePointToState = (point) => ({ ...point });
+
+  static parseStateToPoint = (state) => ({ ...state });
 }
