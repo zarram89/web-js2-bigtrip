@@ -1,18 +1,17 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { offersByType, destinations } from '../mock/point.js';
 import dayjs from 'dayjs';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
-function createEditPointTemplate(data) {
+function createEditPointTemplate(data, allOffers, allDestinations) {
   const { basePrice, dateFrom, dateTo, destination, offers, type } = data;
 
-  const destinationObj = destinations.find((d) => d.id === destination);
+  const destinationObj = allDestinations.find((d) => d.id === destination);
   const destinationName = destinationObj ? destinationObj.name : '';
   const destinationDescription = destinationObj ? destinationObj.description : '';
   const destinationPictures = destinationObj ? destinationObj.pictures : [];
 
-  const typeOffers = offersByType.find((offer) => offer.type === type);
+  const typeOffers = allOffers.find((offer) => offer.type === type);
   const availableOffers = typeOffers ? typeOffers.offers : [];
 
   const offersTemplate = availableOffers.map((offer) => {
@@ -93,7 +92,7 @@ function createEditPointTemplate(data) {
             </label>
             <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationName}" list="destination-list-1">
             <datalist id="destination-list-1">
-              ${destinations.map((d) => `<option value="${d.name}"></option>`).join('')}
+              ${allDestinations.map((d) => `<option value="${d.name}"></option>`).join('')}
             </datalist>
           </div>
 
@@ -148,16 +147,20 @@ export default class EditPointView extends AbstractStatefulView {
   _callback = {};
   #datepickerFrom = null;
   #datepickerTo = null;
+  #allOffers = null;
+  #allDestinations = null;
 
-  constructor({ point }) {
+  constructor({ point, allOffers, allDestinations }) {
     super();
     this._state = EditPointView.parsePointToState(point);
+    this.#allOffers = allOffers;
+    this.#allDestinations = allDestinations;
     this.#setInnerHandlers();
     this.#setDatepicker();
   }
 
   get template() {
-    return createEditPointTemplate(this._state);
+    return createEditPointTemplate(this._state, this.#allOffers, this.#allDestinations);
   }
 
   removeElement = () => {
@@ -243,7 +246,7 @@ export default class EditPointView extends AbstractStatefulView {
   #destinationChangeHandler = (evt) => {
     evt.preventDefault();
     const destinationName = evt.target.value;
-    const destination = destinations.find((d) => d.name === destinationName);
+    const destination = this.#allDestinations.find((d) => d.name === destinationName);
 
     if (!destination) {
       this.updateElement({

@@ -1,8 +1,7 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
-import { offersByType } from '../mock/point.js';
 
-function createPointTemplate(point) {
+function createPointTemplate(point, allOffers) {
   const { basePrice, dateFrom, dateTo, destination, isFavorite, offers, type } = point;
 
   const date = dayjs(dateFrom).format('MMM D');
@@ -29,7 +28,7 @@ function createPointTemplate(point) {
     ? 'event__favorite-btn--active'
     : '';
 
-  const typeOffers = offersByType.find((offer) => offer.type === type);
+  const typeOffers = allOffers.find((offer) => offer.type === type);
   const selectedOffers = typeOffers ? typeOffers.offers.filter((offer) => offers.includes(offer.id)) : [];
 
   const offersTemplate = selectedOffers.map((offer) => `
@@ -80,19 +79,21 @@ function createPointTemplate(point) {
 export default class PointView extends AbstractView {
   #point = null;
   #destinations = null;
+  #offers = null;
   _callback = {};
 
-  constructor({ point, destinations }) {
+  constructor({ point, destinations, offers }) {
     super();
     this.#point = point;
     this.#destinations = destinations;
-    // We need to resolve destination ID to name for display
-    const destinationObj = this.#destinations.find((d) => d.id === this.#point.destination);
-    this.#point.destinationName = destinationObj ? destinationObj.name : this.#point.destination;
+    this.#offers = offers;
   }
 
   get template() {
-    return createPointTemplate({ ...this.#point, destination: this.#point.destinationName });
+    const destinationObj = this.#destinations.find((d) => d.id === this.#point.destination);
+    const destinationName = destinationObj ? destinationObj.name : this.#point.destination;
+
+    return createPointTemplate({ ...this.#point, destination: destinationName }, this.#offers);
   }
 
   setEditClickHandler = (callback) => {
